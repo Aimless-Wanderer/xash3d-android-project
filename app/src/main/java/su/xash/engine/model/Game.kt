@@ -2,16 +2,23 @@ package su.xash.engine.model
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.documentfile.provider.DocumentFile
+import org.spongycastle.math.raw.Mod
 import su.xash.engine.XashActivity
 
 
-class Game(val ctx: Context, val basedir: DocumentFile, var installed: Boolean = true) {
+class Game(
+    val ctx: Context,
+    val basedir: DocumentFile,
+    var installed: Boolean = true,
+    val dbEntry: ModDatabase.Entry? = null
+) {
     private var iconName = "game.ico"
     var title = "Unknown Game"
     var icon: Bitmap? = null
@@ -40,8 +47,8 @@ class Game(val ctx: Context, val basedir: DocumentFile, var installed: Boolean =
             putExtra("gamedir", basedir.name)
             putExtra("argv", pref.getString("arguments", "-dev 2 -log"))
             putExtra("usevolume", pref.getBoolean("use_volume_buttons", false))
-            //.putExtra("gamelibdir", getGameLibDir(context))
-            //.putExtra("package", getPackageName()) }
+            putExtra("gamelibdir", getGameLibDir(ctx))
+            putExtra("package", getPackageName(ctx))
         })
     }
 
@@ -62,15 +69,12 @@ class Game(val ctx: Context, val basedir: DocumentFile, var installed: Boolean =
         }
     }
 
-    private fun getPackageName(): String? {
-//        return if (mDbEntry != null) {
-//            mDbEntry.getPackageName()
-//        } else null
-        return null
+    private fun getPackageName(ctx: Context): String? {
+        return pref.getString("package_name", ctx.packageName)
     }
 
     private fun getGameLibDir(ctx: Context): String? {
-        val pkgName = getPackageName()
+        val pkgName = getPackageName(ctx)
         if (pkgName != null) {
             val pkgInfo: PackageInfo = try {
                 ctx.packageManager.getPackageInfo(pkgName, 0)
@@ -88,11 +92,15 @@ class Game(val ctx: Context, val basedir: DocumentFile, var installed: Boolean =
         return ctx.applicationInfo.nativeLibraryDir
     }
 
+    fun getPreferences(): SharedPreferences {
+        return pref;
+    }
+
     companion object {
-        fun getGames(ctx: Context, file: DocumentFile): List<Game> {
+        fun getGames(ctx: Context, file: DocumentFile, ignoreRoot: Boolean = false): List<Game> {
             val games = mutableListOf<Game>()
 
-            if (checkIfGamedir(file)) {
+            if (checkIfGamedir(file) && !ignoreRoot) {
                 games.add(Game(ctx, file))
             } else {
                 file.listFiles().forEach {
@@ -114,16 +122,3 @@ class Game(val ctx: Context, val basedir: DocumentFile, var installed: Boolean =
         }
     }
 }
-
-//    Intent intent = new Intent("su.xash.engine.MOD");
-//                for (ResolveInfo info : context.getPackageManager()
-//                        .queryIntentActivities(intent, PackageManager.GET_META_DATA)) {
-//                        String packageName = info.activityInfo.applicationInfo.packageName;
-//                        String gameDir = info.activityInfo.applicationInfo.metaData.getString(
-//                        "su.xash.engine.gamedir");
-//                        Log.d(TAG, "package = " + packageName + " gamedir = " + gameDir);
-//                        }
-
-//public void startEngine(Context context) {
-//    context.startActivity(new Intent(context, XashActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).putExtra("gamedir", getGameDir()).putExtra("argv", getArguments()).putExtra("usevolume", getVolumeState()).putExtra("gamelibdir", getGameLibDir(context)).putExtra("package", getPackageName()));
-//}

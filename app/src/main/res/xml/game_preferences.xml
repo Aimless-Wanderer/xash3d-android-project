@@ -23,8 +23,7 @@
         app:key="package_name"
         app:layout="@layout/list_preference"
         app:title="@string/preferences_package_name"
-        app:useSimpleSummaryProvider="true"
-        app:isPreferenceVisible="false"/>
+        app:useSimpleSummaryProvider="true"/>
 
     <ListPreference
         app:key="client_package"

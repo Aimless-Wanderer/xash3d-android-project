@@ -54,19 +54,11 @@ public class XashDocumentsProvider extends DocumentsProvider {
         final String appName = getContext().getString(R.string.app_name);
         final String docId = getDocIdForFile(mRootDir);
 
-        int flags;
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            flags = Root.FLAG_LOCAL_ONLY | Root.FLAG_SUPPORTS_CREATE | Root.FLAG_SUPPORTS_SEARCH;
-        } else {
-            flags = Root.FLAG_LOCAL_ONLY | Root.FLAG_SUPPORTS_CREATE | Root.FLAG_SUPPORTS_SEARCH | Root.FLAG_SUPPORTS_IS_CHILD;
-        }
-
         final MatrixCursor.RowBuilder row = result.newRow();
         row.add(Root.COLUMN_ROOT_ID, docId);
         row.add(Root.COLUMN_DOCUMENT_ID, docId);
         row.add(Root.COLUMN_SUMMARY, null);
-        row.add(Root.COLUMN_FLAGS, flags);
+        row.add(Root.COLUMN_FLAGS, Root.FLAG_LOCAL_ONLY | Root.FLAG_SUPPORTS_CREATE | Root.FLAG_SUPPORTS_SEARCH | Root.FLAG_SUPPORTS_IS_CHILD);
         row.add(Root.COLUMN_TITLE, appName);
         row.add(Root.COLUMN_MIME_TYPES, ALL_MIME_TYPES);
         row.add(Root.COLUMN_AVAILABLE_BYTES, mRootDir.getFreeSpace());

@@ -94,7 +94,8 @@
 				"name": "Half-Life High Definition",
 				"depot_id": 96
 			}
-		]
+		],
+		"package_name": "su.xash.engine"
 	},
 	{
 		"name": "Half-Life: C.A.G.E.D.",
@@ -169,7 +170,8 @@
 				"name": "Half-Life High Definition",
 				"depot_id": 96
 			}
-		]
+		],
+		"package_name": "su.xash.tf15client"
 	},
 	{
 		"name": "Base Defense",
@@ -210,7 +212,8 @@
 				"name": "Deathmatch Classic Base Content",
 				"depot_id": 41
 			}
-		]
+		],
+		"package_name": "su.xash.xash3d.dmc"
 	},
 	{
 		"name": "Halfquake Trilogy",

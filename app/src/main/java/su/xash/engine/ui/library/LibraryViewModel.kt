@@ -2,6 +2,7 @@ package su.xash.engine.ui.library
 
 import android.app.Application
 import android.content.Context
+import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
@@ -17,20 +18,22 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import su.xash.engine.R
 import su.xash.engine.model.Game
 import su.xash.engine.model.ModDatabase
 import su.xash.engine.workers.FileCopyWorker
 import su.xash.engine.workers.KEY_FILE_URI
 import java.util.Locale
 
-const val TAG_INSTALL = "TAG_INSTALL"
-
 class LibraryViewModel(application: Application) : AndroidViewModel(application) {
+    private val TAG_INSTALL = "TAG_INSTALL"
+
     val installedGames: LiveData<List<Game>> get() = _installedGames
     private val _installedGames = MutableLiveData(emptyList<Game>())
 
@@ -65,7 +68,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
                 val games = mutableListOf<Game>()
                 val root = DocumentFile.fromFile(ctx.getExternalFilesDir(null)!!)
 
-                val installedGames = Game.getGames(ctx, root)
+                val installedGames = Game.getGames(ctx, root, true)
                     .filter { p -> _downloads.value?.any { p.basedir.name == it.basedir.name } == false }
 
                 games.addAll(installedGames)
@@ -88,7 +91,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
                 }?.forEach {
                     val uri = Uri.parse(it.progress.getString(FileCopyWorker.Input))
                     val file = DocumentFile.fromTreeUri(ctx, uri)
-                    games.addAll(Game.getGames(ctx, file!!))
+                    games.addAll(Game.getGames(ctx, file!!, true))
                     games.forEach { g -> g.installed = false }
                 }
 
@@ -122,6 +125,35 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun startEngine(ctx: Context, game: Game) {
-        game.startEngine(ctx)
+        val pref = game.getPreferences()
+
+        if (pref.getBoolean("separate_libraries", false)) {
+            // user probably knows what he does
+            game.startEngine(ctx)
+        } else {
+            val pkg = pref.getString("package_name", ctx.packageName)
+            val recPkg = modDb.getByGameDir(game.basedir.name!!)
+
+            if (recPkg != null) {
+                if (pkg == recPkg.pkgname || recPkg.pkgname == "su.xash.engine") {
+                    game.startEngine(ctx)
+                } else {
+                    MaterialAlertDialogBuilder(ctx).apply {
+                        setMessage(R.string.game_recommended_package)
+                        setPositiveButton(R.string.yes) { dialog, _ ->
+                            game.getPreferences().edit().putString("package_name", recPkg.pkgname).commit()
+                            dialog.dismiss()
+                        }
+                        setNegativeButton(R.string.no) { dialog, _ ->
+                            dialog.dismiss()
+                            game.startEngine(ctx)
+                        }
+                        show()
+                    }
+                }
+            } else {
+                game.startEngine(ctx)
+            }
+        }
     }
 }

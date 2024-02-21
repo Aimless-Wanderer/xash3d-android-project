@@ -4,6 +4,8 @@
     <string name="authority" translatable="false">su.xash.engine.documents</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="next">Next</string>
     <string name="browse">Browse</string>
     <string name="install">Install</string>
@@ -33,4 +35,6 @@
     <string name="preferences_client_package">Client package</string>
     <string name="preferences_server_package">Server package</string>
     <string name="preferences_use_icons">Use icons instead of backgrounds</string>
+    <string name="game_recommended_package">A recommended launcher is available, use it?</string>
+    <string name="game_not_installed">%1$s is not installed. Install the game and try again.</string>
 </resources>

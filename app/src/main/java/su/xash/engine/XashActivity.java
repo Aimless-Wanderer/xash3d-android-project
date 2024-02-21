@@ -109,9 +109,10 @@ public class XashActivity extends SDLActivity {
         return getWindow().superDispatchKeyEvent(event);
     }
 
-    // TODO: REMOVE LATER, temporary launchers support?
     @Override
     protected String[] getArguments() {
+        nativeSetenv("XASH3D_ENGLIBDIR", getApplicationInfo().nativeLibraryDir);
+
         String gamedir = getIntent().getStringExtra("gamedir");
         if (gamedir == null) gamedir = "valve";
         nativeSetenv("XASH3D_GAME", gamedir);

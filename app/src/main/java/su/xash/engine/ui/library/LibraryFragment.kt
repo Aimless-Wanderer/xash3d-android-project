@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import su.xash.engine.R
 import su.xash.engine.adapters.GameAdapter
@@ -27,6 +28,8 @@ class LibraryFragment : Fragment(), MenuProvider {
     private val binding get() = _binding!!
 
     private val libraryViewModel: LibraryViewModel by activityViewModels()
+
+    private var checkedMod = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -50,6 +53,7 @@ class LibraryFragment : Fragment(), MenuProvider {
 
         libraryViewModel.installedGames.observe(viewLifecycleOwner) {
             (binding.gamesList.adapter as GameAdapter).submitList(it)
+            checkPendingMod()
         }
 
         libraryViewModel.workInfos.observe(viewLifecycleOwner) {
@@ -90,5 +94,32 @@ class LibraryFragment : Fragment(), MenuProvider {
         }
 
         return false
+    }
+
+    private fun checkPendingMod() {
+        if(checkedMod){
+            return
+        } else {
+            checkedMod = true
+        }
+
+        val extras = activity?.intent?.extras
+        if (extras != null) {
+            val gamedir = extras.getString("gamedir")
+            val game = libraryViewModel.installedGames.value?.filter { it.basedir.name == gamedir }
+                ?.firstOrNull()
+
+            if (game == null) {
+                MaterialAlertDialogBuilder(requireContext()).apply {
+                    setMessage(getString(R.string.game_not_installed, gamedir))
+                    setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+                    show()
+                }
+            } else {
+                val pkg = extras.getString("package", requireContext().packageName)
+                game.getPreferences().edit().putString("package_name", pkg).commit()
+                libraryViewModel.startEngine(requireContext(), game)
+            }
+        }
     }
 }
